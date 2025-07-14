@@ -1,0 +1,174 @@
+{
+  "deployment": {
+    "subscriptionId": "your-azure-subscription-id",
+    "resourceGroupName": "sql-ha-demo-rg",
+    "location": "East US",
+    "deploymentName": "sql-ha-deployment",
+    "tags": {
+      "Environment": "Demo",
+      "Project": "SQL-HA-Azure",
+      "Owner": "YourName",
+      "CostCenter": "IT-Demo"
+    }
+  },
+  "network": {
+    "virtualNetworkName": "sql-ha-vnet",
+    "addressSpace": "10.0.0.0/16",
+    "subnets": {
+      "domain": {
+        "name": "domain-subnet",
+        "addressPrefix": "10.0.1.0/24"
+      },
+      "sql1": {
+        "name": "sql1-subnet", 
+        "addressPrefix": "10.0.2.0/24"
+      },
+      "sql2": {
+        "name": "sql2-subnet",
+        "addressPrefix": "10.0.3.0/24"
+      },
+      "witness": {
+        "name": "witness-subnet",
+        "addressPrefix": "10.0.4.0/24"
+      }
+    },
+    "networkSecurityGroup": {
+      "name": "sql-ha-nsg",
+      "rules": [
+        {
+          "name": "AllowRDP",
+          "priority": 1000,
+          "direction": "Inbound",
+          "access": "Allow",
+          "protocol": "Tcp",
+          "sourcePortRange": "*",
+          "destinationPortRange": "3389",
+          "sourceAddressPrefix": "YourPublicIP/32",
+          "destinationAddressPrefix": "*"
+        },
+        {
+          "name": "AllowSQL",
+          "priority": 1100,
+          "direction": "Inbound", 
+          "access": "Allow",
+          "protocol": "Tcp",
+          "sourcePortRange": "*",
+          "destinationPortRange": "1433",
+          "sourceAddressPrefix": "10.0.0.0/16",
+          "destinationAddressPrefix": "*"
+        },
+        {
+          "name": "AllowAGEndpoint",
+          "priority": 1200,
+          "direction": "Inbound",
+          "access": "Allow", 
+          "protocol": "Tcp",
+          "sourcePortRange": "*",
+          "destinationPortRange": "5022",
+          "sourceAddressPrefix": "10.0.0.0/16",
+          "destinationAddressPrefix": "*"
+        }
+      ]
+    }
+  },
+  "domainController": {
+    "vmName": "dc01",
+    "vmSize": "Standard_B2s",
+    "adminUsername": "dcadmin",
+    "adminPassword": "P@ssw0rd123!",
+    "domainName": "contoso.local",
+    "domainNetbiosName": "CONTOSO",
+    "safeModePwd": "P@ssw0rd123!",
+    "staticIpAddress": "10.0.1.10"
+  },
+  "sqlServers": {
+    "vmSize": "Standard_D4s_v3",
+    "adminUsername": "sqladmin", 
+    "adminPassword": "P@ssw0rd123!",
+    "sqlServerVersion": "SQL2022-WS2022",
+    "sqlServerEdition": "Enterprise",
+    "availabilityOption": "AvailabilityZones",
+    "storageConfiguration": {
+      "dataDisks": [
+        {
+          "name": "datadisk1",
+          "diskSizeGB": 1024,
+          "storageAccountType": "Premium_LRS",
+          "caching": "ReadOnly"
+        },
+        {
+          "name": "logdisk1", 
+          "diskSizeGB": 512,
+          "storageAccountType": "Premium_LRS",
+          "caching": "None"
+        }
+      ]
+    },
+    "nodes": [
+      {
+        "vmName": "sql01",
+        "staticIpAddress": "10.0.2.10",
+        "availabilityZone": "1",
+        "role": "Primary"
+      },
+      {
+        "vmName": "sql02",
+        "staticIpAddress": "10.0.3.10", 
+        "availabilityZone": "2",
+        "role": "Secondary"
+      }
+    ]
+  },
+  "witness": {
+    "vmName": "witness01",
+    "vmSize": "Standard_B2s",
+    "adminUsername": "witnessadmin",
+    "adminPassword": "P@ssw0rd123!",
+    "staticIpAddress": "10.0.4.10"
+  },
+  "cluster": {
+    "clusterName": "sql-ha-cluster",
+    "clusterIpAddress": "10.0.2.100",
+    "quorumType": "NodeAndFileShareMajority",
+    "fileSharePath": "\\\\witness01\\QWitness"
+  },
+  "availabilityGroup": {
+    "name": "AG-Demo",
+    "listenerName": "AG-Demo-Listener",
+    "listenerPort": 1433,
+    "listenerIpAddress": "10.0.2.101",
+    "databases": ["DemoDatabase"],
+    "synchronizationMode": "SYNCHRONOUS_COMMIT",
+    "failoverMode": "AUTOMATIC"
+  },
+  "loadBalancer": {
+    "name": "sql-ha-lb",
+    "frontendIpAddress": "10.0.2.101",
+    "backendPoolName": "sql-backend-pool",
+    "healthProbeName": "sql-health-probe",
+    "healthProbePort": 59999,
+    "loadBalancingRuleName": "sql-lb-rule"
+  },
+  "storage": {
+    "storageAccountName": "sqlhawitness{uniqueString}",
+    "storageAccountType": "Standard_LRS",
+    "containerName": "witness"
+  },
+  "security": {
+    "keyVaultName": "sql-ha-kv-{uniqueString}",
+    "enableAzureBackup": true,
+    "enableEncryption": true,
+    "enableAudit": true
+  },
+  "monitoring": {
+    "logAnalyticsWorkspaceName": "sql-ha-logs",
+    "enableInsights": true,
+    "enableAlerts": true
+  },
+  "serviceAccounts": {
+    "sqlServiceAccount": "CONTOSO\\sqlservice",
+    "sqlAgentAccount": "CONTOSO\\sqlagent", 
+    "clusterServiceAccount": "CONTOSO\\clusterservice"
+  }
+}
+
