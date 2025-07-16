@@ -171,7 +171,8 @@ Edit `config.json` to customize your deployment:
   "vmSize": "Standard_D4s_v3",
   "sqlServerVersion": "SQL2022-WS2022",
   "availabilityOption": "AvailabilityZones",
-  "networkConfiguration": "MultiSubnet"
+  "networkConfiguration": "MultiSubnet",
+  "sourceAddressPrefix": "YourPublicIP/32"
 }
 ```
 
