@@ -1,0 +1,73 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "value": "East US"
+    },
+    "deploymentPrefix": {
+      "value": "sqlha"
+    },
+    "adminUsername": {
+      "value": "azureuser"
+    },
+    "adminPassword": {
+      "value": "P@ssw0rd123!"
+    },
+    "sqlServiceAccount": {
+      "value": "sqlservice"
+    },
+    "sqlServicePassword": {
+      "value": "P@ssw0rd123!"
+    },
+    "domainName": {
+      "value": "contoso.local"
+    },
+    "vnetAddressSpace": {
+      "value": "10.0.0.0/16"
+    },
+    "domainSubnetPrefix": {
+      "value": "10.0.1.0/24"
+    },
+    "sql1SubnetPrefix": {
+      "value": "10.0.2.0/24"
+    },
+    "sql2SubnetPrefix": {
+      "value": "10.0.3.0/24"
+    },
+    "witnessSubnetPrefix": {
+      "value": "10.0.4.0/24"
+    },
+    "sqlVmSize": {
+      "value": "Standard_D4s_v3"
+    },
+    "dcVmSize": {
+      "value": "Standard_D2s_v3"
+    },
+    "witnessVmSize": {
+      "value": "Standard_D2s_v3"
+    },
+    "sqlServerEdition": {
+      "value": "Standard"
+    },
+    "availabilityGroupName": {
+      "value": "AG-Demo"
+    },
+    "listenerName": {
+      "value": "AG-Listener"
+    },
+    "listenerPort": {
+      "value": 1433
+    },
+    "tags": {
+      "value": {
+        "Environment": "Demo",
+        "Project": "SQL-HA-Azure",
+        "Owner": "IT-Team",
+        "CostCenter": "IT-Demo",
+        "DeploymentMethod": "Bicep"
+      }
+    }
+  }
+}
+

@@ -1,0 +1,293 @@
+{
+  "deployment": {
+    "subscriptionId": "your-subscription-id-here",
+    "resourceGroupName": "sql-ha-single-subnet",
+    "location": "East US",
+    "deploymentName": "sql-ha-single-subnet-deployment",
+    "tags": {
+      "Environment": "Production",
+      "Project": "SQL-HA-SingleSubnet",
+      "Owner": "DBA-Team",
+      "CostCenter": "IT-Database",
+      "DeploymentMethod": "AzureCLI"
+    }
+  },
+  "network": {
+    "virtualNetworkName": "sql-ha-vnet",
+    "addressSpace": "10.1.0.0/16",
+    "subnets": {
+      "main": {
+        "name": "main-subnet",
+        "addressPrefix": "10.1.1.0/24",
+        "subnetMask": "/24"
+      }
+    },
+    "networkSecurityGroup": {
+      "name": "sql-ha-nsg",
+      "rules": [
+        {
+          "name": "AllowRDP",
+          "priority": 1000,
+          "direction": "Inbound",
+          "access": "Allow",
+          "protocol": "Tcp",
+          "sourcePortRange": "*",
+          "destinationPortRange": "3389",
+          "sourceAddressPrefix": "10.1.0.0/16",
+          "destinationAddressPrefix": "*"
+        },
+        {
+          "name": "AllowSQL",
+          "priority": 1100,
+          "direction": "Inbound",
+          "access": "Allow",
+          "protocol": "Tcp",
+          "sourcePortRange": "*",
+          "destinationPortRange": "1433",
+          "sourceAddressPrefix": "10.1.0.0/16",
+          "destinationAddressPrefix": "*"
+        },
+        {
+          "name": "AllowSQLBrowser",
+          "priority": 1200,
+          "direction": "Inbound",
+          "access": "Allow",
+          "protocol": "Udp",
+          "sourcePortRange": "*",
+          "destinationPortRange": "1434",
+          "sourceAddressPrefix": "10.1.0.0/16",
+          "destinationAddressPrefix": "*"
+        },
+        {
+          "name": "AllowAGEndpoint",
+          "priority": 1300,
+          "direction": "Inbound",
+          "access": "Allow",
+          "protocol": "Tcp",
+          "sourcePortRange": "*",
+          "destinationPortRange": "5022",
+          "sourceAddressPrefix": "10.1.0.0/16",
+          "destinationAddressPrefix": "*"
+        },
+        {
+          "name": "AllowClusterCommunication",
+          "priority": 1400,
+          "direction": "Inbound",
+          "access": "Allow",
+          "protocol": "*",
+          "sourcePortRange": "*",
+          "destinationPortRange": "3343",
+          "sourceAddressPrefix": "10.1.0.0/16",
+          "destinationAddressPrefix": "*"
+        },
+        {
+          "name": "AllowWinRM",
+          "priority": 1500,
+          "direction": "Inbound",
+          "access": "Allow",
+          "protocol": "Tcp",
+          "sourcePortRange": "*",
+          "destinationPortRange": "5985-5986",
+          "sourceAddressPrefix": "10.1.0.0/16",
+          "destinationAddressPrefix": "*"
+        }
+      ]
+    }
+  },
+  "domainController": {
+    "vmName": "sql-ha-dc",
+    "vmSize": "Standard_D2s_v3",
+    "adminUsername": "azureuser",
+    "adminPassword": "P@ssw0rd123!",
+    "domainName": "contoso.local",
+    "domainNetbiosName": "CONTOSO",
+    "safeModePwd": "P@ssw0rd123!",
+    "privateIpAddress": "10.1.1.4",
+    "subnetName": "main-subnet",
+    "osDiskType": "Premium_LRS",
+    "dataDiskSizeGB": 128,
+    "dataDiskType": "Premium_LRS"
+  },
+  "sqlServers": {
+    "vmSize": "Standard_E4s_v3",
+    "adminUsername": "azureuser",
+    "adminPassword": "P@ssw0rd123!",
+    "sqlServiceAccount": "sqlservice",
+    "sqlServicePassword": "P@ssw0rd123!",
+    "sqlAgentAccount": "sqlagent",
+    "sqlAgentPassword": "P@ssw0rd123!",
+    "sqlServerEdition": "Standard",
+    "sqlServerVersion": "2022",
+    "osDiskType": "Premium_LRS",
+    "dataDiskSizeGB": 1023,
+    "dataDiskType": "Premium_LRS",
+    "logDiskSizeGB": 512,
+    "logDiskType": "Premium_LRS",
+    "tempDbDiskSizeGB": 256,
+    "tempDbDiskType": "Premium_LRS",
+    "nodes": [
+      {
+        "vmName": "sql-ha-node1",
+        "privateIpAddress": "10.1.1.10",
+        "subnetName": "main-subnet",
+        "role": "primary"
+      },
+      {
+        "vmName": "sql-ha-node2",
+        "privateIpAddress": "10.1.1.11",
+        "subnetName": "main-subnet",
+        "role": "secondary"
+      }
+    ]
+  },
+  "cluster": {
+    "name": "SQL-HA-Cluster",
+    "ipAddress": "10.1.1.20",
+    "subnetMask": "255.255.255.0",
+    "witnessType": "CloudWitness",
+    "witnessStorageAccount": "sqlhawitness",
+    "witnessStorageKey": "your-storage-key-here"
+  },
+  "availabilityGroup": {
+    "name": "AG-Production",
+    "listenerName": "AG-Listener",
+    "listenerIpAddress": "10.1.1.21",
+    "listenerPort": 1433,
+    "databases": [
+      "AdventureWorks2022",
+      "MyAppDatabase"
+    ],
+    "backupPreference": "Secondary",
+    "failureConditionLevel": 3,
+    "healthCheckTimeout": 30000,
+    "replicas": [
+      {
+        "serverName": "sql-ha-node1",
+        "availabilityMode": "SYNCHRONOUS_COMMIT",
+        "failoverMode": "AUTOMATIC",
+        "backupPriority": 30,
+        "connectionModeInPrimaryRole": "ALLOW_ALL_CONNECTIONS",
+        "connectionModeInSecondaryRole": "ALLOW_READ_ONLY_CONNECTIONS"
+      },
+      {
+        "serverName": "sql-ha-node2",
+        "availabilityMode": "SYNCHRONOUS_COMMIT",
+        "failoverMode": "AUTOMATIC",
+        "backupPriority": 50,
+        "connectionModeInPrimaryRole": "ALLOW_ALL_CONNECTIONS",
+        "connectionModeInSecondaryRole": "ALLOW_READ_ONLY_CONNECTIONS"
+      }
+    ]
+  },
+  "loadBalancer": {
+    "name": "sql-ha-lb",
+    "type": "Internal",
+    "frontendIpAddress": "10.1.1.21",
+    "backendPoolName": "sql-backend-pool",
+    "healthProbeName": "sql-health-probe",
+    "healthProbePort": 59999,
+    "healthProbeProtocol": "Tcp",
+    "healthProbeIntervalSeconds": 5,
+    "healthProbeNumberOfProbes": 2,
+    "loadBalancingRules": [
+      {
+        "name": "SQLRule",
+        "frontendPort": 1433,
+        "backendPort": 1433,
+        "protocol": "Tcp",
+        "enableFloatingIP": true,
+        "idleTimeoutMinutes": 4
+      }
+    ]
+  },
+  "storage": {
+    "storageAccountName": "sqlhastorage",
+    "storageAccountType": "Standard_LRS",
+    "containerNames": [
+      "backups",
+      "logs",
+      "scripts"
+    ],
+    "fileShares": [
+      {
+        "name": "witness",
+        "quota": 1
+      }
+    ]
+  },
+  "security": {
+    "enableEncryption": true,
+    "certificateName": "SQLHACert",
+    "keyVaultName": "sql-ha-keyvault",
+    "enableTDE": true,
+    "enableBackupEncryption": true,
+    "firewallRules": [
+      {
+        "name": "AllowVNet",
+        "startIpAddress": "10.1.0.0",
+        "endIpAddress": "10.1.255.255"
+      }
+    ]
+  },
+  "serviceAccounts": {
+    "sqlServiceAccount": {
+      "username": "CONTOSO\\sqlservice",
+      "password": "P@ssw0rd123!",
+      "description": "SQL Server Database Engine Service Account"
+    },
+    "sqlAgentAccount": {
+      "username": "CONTOSO\\sqlagent",
+      "password": "P@ssw0rd123!",
+      "description": "SQL Server Agent Service Account"
+    },
+    "clusterServiceAccount": {
+      "username": "CONTOSO\\clusterservice",
+      "password": "P@ssw0rd123!",
+      "description": "Windows Server Failover Cluster Service Account"
+    }
+  },
+  "monitoring": {
+    "enableSqlInsights": true,
+    "logAnalyticsWorkspace": "sql-ha-logs",
+    "retentionDays": 30,
+    "alertRules": [
+      {
+        "name": "High CPU Usage",
+        "metric": "Percentage CPU",
+        "threshold": 80,
+        "operator": "GreaterThan",
+        "timeAggregation": "Average",
+        "windowSize": "PT5M",
+        "frequency": "PT1M"
+      },
+      {
+        "name": "Low Disk Space",
+        "metric": "Disk Free Space %",
+        "threshold": 10,
+        "operator": "LessThan",
+        "timeAggregation": "Average",
+        "windowSize": "PT5M",
+        "frequency": "PT5M"
+      },
+      {
+        "name": "AG Synchronization Health",
+        "metric": "Synchronization Health",
+        "threshold": 1,
+        "operator": "LessThan",
+        "timeAggregation": "Average",
+        "windowSize": "PT1M",
+        "frequency": "PT1M"
+      }
+    ]
+  },
+  "witness": {
+    "type": "CloudWitness",
+    "vmName": "sql-ha-witness",
+    "vmSize": "Standard_B2s",
+    "privateIpAddress": "10.1.1.30",
+    "subnetName": "main-subnet",
+    "storageAccountName": "sqlhawitness",
+    "storageAccountKey": "your-storage-key-here"
+  }
+}
+
